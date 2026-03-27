@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import escudo from "../../icons/escudo.svg";
+import api from "../../services/api";
+import { useNavigate } from "@tanstack/react-router";
 
 const Login = () => {
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
   const [erro, setErro] = useState("");
 
-  const logar = (e) => {
+  const navigate = useNavigate();
+
+  const logar = async (e) => {
     e.preventDefault();
 
     if (!user.trim()) {
@@ -20,6 +24,20 @@ const Login = () => {
     }
 
     setErro("");
+
+    try {
+      const response = await api.post("/login", {
+        user,
+        password,
+      });
+
+      localStorage.setItem("token", response.data.token);
+
+      navigate({ to: "/Home" });
+
+    } catch (error) {
+      setErro(error.response?.data?.message || "Erro ao logar");
+    }
   };
 
   return (
@@ -30,10 +48,9 @@ const Login = () => {
             <img
               width={32}
               height={32}
-              className="w-8 h-8 text-white"
+              className="w-8 h-8"
               src={escudo}
               alt="Logo SDCPR"
-              color="red"
             />
           </div>
           <h1 className="text-2xl font-bold text-white">SDCPR</h1>
@@ -41,6 +58,8 @@ const Login = () => {
             Sistema de Controle de Pagamentos e Reclamações
           </p>
         </div>
+
+        {/* 🔥 form corrigido */}
         <form onSubmit={logar}>
           <div className="p-8 space-y-6">
             <div>
@@ -66,6 +85,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+
             <div className="mt-4">
               {erro && <p style={{ color: "red" }}>{erro}</p>}
             </div>
@@ -75,6 +95,15 @@ const Login = () => {
               className="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-lg"
             >
               Entrar no Sistema
+            </button>
+
+            {/* 🔥 botão de registrar */}
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/registrar" })}
+              className="w-full border border-indigo-600 text-indigo-600 font-bold py-2.5 rounded-lg"
+            >
+              Criar Conta
             </button>
           </div>
         </form>
