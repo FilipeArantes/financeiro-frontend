@@ -1,16 +1,15 @@
 import React, { useState } from "react";
-import escudo from "../../icons/escudo.svg";
-import api from "../../services/api";
-import { useNavigate } from "@tanstack/react-router";
+import escudo from "../icons/escudo.svg";
+import api from "../services/api";
+import { Navigate } from "@tanstack/react-router";
 
-const Login = () => {
+const Register = () => {
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [erro, setErro] = useState("");
 
-  const navigate = useNavigate();
-
-  const logar = async (e) => {
+  const registrar = (e) => {
     e.preventDefault();
 
     if (!user.trim()) {
@@ -23,20 +22,29 @@ const Login = () => {
       return;
     }
 
+    if (!confirmPassword.trim()) {
+      setErro("Confirme a senha");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErro("As senhas não coincidem");
+      return;
+    }
+
     setErro("");
 
     try {
-      const response = await api.post("/login", {
+      const response = api.post("/register", {
         user,
         password,
       });
 
-      localStorage.setItem("token", response.data.token);
+      console.log("Cadastro sucesso:", response.data);
 
-      navigate({ to: "/Home" });
-
+      Navigate({ to: "/Login" });
     } catch (error) {
-      setErro(error.response?.data?.message || "Erro ao logar");
+      setErro(error.response?.data?.message || "Erro ao cadastrar usuário");
     }
   };
 
@@ -54,13 +62,10 @@ const Login = () => {
             />
           </div>
           <h1 className="text-2xl font-bold text-white">SDCPR</h1>
-          <p className="text-indigo-200 text-sm mt-1">
-            Sistema de Controle de Pagamentos e Reclamações
-          </p>
+          <p className="text-indigo-200 text-sm mt-1">Criar nova conta</p>
         </div>
 
-        {/* 🔥 form corrigido */}
-        <form onSubmit={logar}>
+        <form >
           <div className="p-8 space-y-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -86,22 +91,26 @@ const Login = () => {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Confirmar Senha
+              </label>
+              <input
+                type="password"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                placeholder="••••••••"
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+
             <div className="mt-4">
               {erro && <p style={{ color: "red" }}>{erro}</p>}
             </div>
 
             <button
               type="submit"
+              onClick={registrar}
               className="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-lg"
-            >
-              Entrar no Sistema
-            </button>
-
-            {/* 🔥 botão de registrar */}
-            <button
-              type="button"
-              onClick={() => navigate({ to: "/registrar" })}
-              className="w-full border border-indigo-600 text-indigo-600 font-bold py-2.5 rounded-lg"
             >
               Criar Conta
             </button>
@@ -112,4 +121,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
