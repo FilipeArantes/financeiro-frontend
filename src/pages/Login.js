@@ -1,15 +1,16 @@
 import React, { useState } from "react";
-import escudo from "../../icons/escudo.svg";
-import api from "../../services/api";
-import { Navigate } from "@tanstack/react-router";
+import escudo from "../icons/escudo.svg";
+import api from "../services/api";
+import { useNavigate } from "@tanstack/react-router";
 
-const Register = () => {
+const Login = () => {
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [erro, setErro] = useState("");
 
-  const registrar = (e) => {
+  const navigate = useNavigate();
+
+  const logar = async (e) => {
     e.preventDefault();
 
     if (!user.trim()) {
@@ -22,29 +23,28 @@ const Register = () => {
       return;
     }
 
-    if (!confirmPassword.trim()) {
-      setErro("Confirme a senha");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setErro("As senhas não coincidem");
-      return;
-    }
-
     setErro("");
 
     try {
-      const response = api.post("/register", {
-        user,
-        password,
-      });
+      if (user === "financeiro" && password === "123") {
+        localStorage.setItem("token", "fake-token");
+        localStorage.setItem("role", "financeiro");
 
-      console.log("Cadastro sucesso:", response.data);
+        navigate({ to: "/pagamentos" });
+        return;
+      }
 
-      Navigate({ to: "/Login" });
+      if (user === "funcionario" && password === "123") {
+        localStorage.setItem("token", "fake-token");
+        localStorage.setItem("role", "funcionario");
+
+        navigate({ to: "/pagamentos" });
+        return;
+      }
+
+      setErro("Usuário ou senha inválidos");
     } catch (error) {
-      setErro(error.response?.data?.message || "Erro ao cadastrar usuário");
+      setErro("Erro ao logar");
     }
   };
 
@@ -62,10 +62,12 @@ const Register = () => {
             />
           </div>
           <h1 className="text-2xl font-bold text-white">SDCPR</h1>
-          <p className="text-indigo-200 text-sm mt-1">Criar nova conta</p>
+          <p className="text-indigo-200 text-sm mt-1">
+            Sistema de Controle de Pagamentos e Reclamações
+          </p>
         </div>
 
-        <form >
+        <form onSubmit={logar}>
           <div className="p-8 space-y-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -91,26 +93,21 @@ const Register = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Confirmar Senha
-              </label>
-              <input
-                type="password"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
-                placeholder="••••••••"
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-
             <div className="mt-4">
               {erro && <p style={{ color: "red" }}>{erro}</p>}
             </div>
 
             <button
               type="submit"
-              onClick={registrar}
               className="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-lg"
+            >
+              Entrar no Sistema
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/registrar" })}
+              className="w-full border border-indigo-600 text-indigo-600 font-bold py-2.5 rounded-lg"
             >
               Criar Conta
             </button>
@@ -121,4 +118,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;
