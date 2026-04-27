@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import escudo from "../icons/escudo.svg";
 import api from "../services/api";
 import { useNavigate } from "@tanstack/react-router";
+import { realizarLogin } from "../services/loginService";
 
 const Login = () => {
-  const [user, setUser] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [erro, setErro] = useState("");
 
@@ -13,8 +14,8 @@ const Login = () => {
   const logar = async (e) => {
     e.preventDefault();
 
-    if (!user.trim()) {
-      setErro("O usuário é obrigatório");
+    if (!email.trim()) {
+      setErro("O email é obrigatório");
       return;
     }
 
@@ -26,25 +27,23 @@ const Login = () => {
     setErro("");
 
     try {
-      if (user === "financeiro" && password === "123") {
-        localStorage.setItem("token", "fake-token");
-        localStorage.setItem("role", "financeiro");
-
-        navigate({ to: "/pagamentos" });
-        return;
-      }
-
-      if (user === "funcionario" && password === "123") {
-        localStorage.setItem("token", "fake-token");
-        localStorage.setItem("role", "funcionario");
-
-        navigate({ to: "/pagamentos" });
-        return;
-      }
-
-      setErro("Usuário ou senha inválidos");
+      const {data} = await realizarLogin(email, password);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      navigate({ to: "/pagamentos" });
     } catch (error) {
-      setErro("Erro ao logar");
+      if (error.response.data) {
+        const erros = error.response.data.errors;
+        const message = error.response.data.message;
+        if (erros && erros.email) {
+          setErro(erros.email[0]);
+        }
+        if (message) {
+          setErro(message);
+        }
+      } else {
+        setErro("Erro ao logar");
+      }
     }
   };
 
@@ -76,8 +75,8 @@ const Login = () => {
               <input
                 type="text"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg"
-                placeholder="seu.usuario"
-                onChange={(e) => setUser(e.target.value)}
+                placeholder="seu.email"
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
