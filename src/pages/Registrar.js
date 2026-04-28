@@ -1,19 +1,28 @@
 import React, { useState } from "react";
 import escudo from "../icons/escudo.svg";
 import api from "../services/api";
-import { Navigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { realizarRegistro } from "../services/registrarService";
 
 const Register = () => {
   const [user, setUser] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [erro, setErro] = useState("");
+  const navigate = useNavigate();
+  
 
-  const registrar = (e) => {
+  const registrar = async (e) => {
     e.preventDefault();
 
     if (!user.trim()) {
       setErro("O usuário é obrigatório");
+      return;
+    }
+
+    if (!email.trim()) {
+      setErro("O email é obrigatório");
       return;
     }
 
@@ -35,14 +44,11 @@ const Register = () => {
     setErro("");
 
     try {
-      const response = api.post("/register", {
-        user,
-        password,
-      });
+      const {data} = await realizarRegistro(email, user, password, confirmPassword);
 
-      console.log("Cadastro sucesso:", response.data);
-
-      Navigate({ to: "/Login" });
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      navigate({ to: "/pagamentos" });
     } catch (error) {
       setErro(error.response?.data?.message || "Erro ao cadastrar usuário");
     }
@@ -67,6 +73,17 @@ const Register = () => {
 
         <form >
           <div className="p-8 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Email
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                placeholder="seu.email@dominio.com"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Login
